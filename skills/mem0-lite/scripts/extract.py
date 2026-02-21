@@ -43,6 +43,9 @@ def groq_extract(text: str) -> list[dict]:
         print("FEHLER: GROQ_API_KEY nicht gesetzt", file=sys.stderr)
         return []
 
+    # SECURITY: Verify agent_id from environment (server-side)
+    verified_agent = os.environ.get("OPENCLAW_AGENT_ID", "default")
+
     prompt = f"""Analysiere folgenden Text und extrahiere alle relevanten Fakten über Personen, Projekte, Präferenzen, Deadlines und Entscheidungen.
 
 Antworte NUR mit einem JSON-Array. Jedes Objekt hat:
@@ -88,8 +91,13 @@ JSON-Array:"""
         return []
 
 
-def add_memory(text: str, user_id: str = "alex", source: str = "manual"):
+def add_memory(text: str, user_id: str = "alex", source: str = "manual", agent_id: str = None):
     """Extrahiert Fakten und speichert sie."""
+    # SECURITY: Verify agent_id from environment (prevents namespace bypass)
+    verified_agent = os.environ.get("OPENCLAW_AGENT_ID", "default")
+    if agent_id and agent_id != verified_agent:
+        raise PermissionError(f"Agent '{verified_agent}' cannot write as '{agent_id}'")
+
     facts = groq_extract(text)
     if not facts:
         print("Keine Fakten extrahiert.")
@@ -136,11 +144,18 @@ def list_memories(user_id: str = None, limit: int = 20):
     print(f"\n{len(memories)} Memories total.")
 
 
-def search_memories(query: str, user_id: str = None) -> list:
+def search_memories(query: str, user_id: str = None, agent_id: str = None, agent_config: dict = None) -> list:
     """Einfache Textsuche (qmd für semantisch)."""
     memories = load_memories()
     if user_id:
         memories = [m for m in memories if m.get("user_id") == user_id]
+
+    # SECURITY: Filter by category even for wildcards (prevents wildcard leak)
+    if agent_id == "*" and agent_config:
+        allowed_categories = agent_config.get("allowed_categories", [])
+        if "*" not in allowed_categories:
+            memories = [m for m in memories
+                       if m.get("category", "default") in allowed_categories]
     query_lower = query.lower()
     results = [
         m for m in memories
