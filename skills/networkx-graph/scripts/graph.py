@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-networkx-graph: Knowledge Graph für Agenten
-Persistenter DiGraph (JSON-backed) mit Traversal, Ego-Graphs, Pfadsuche.
+networkx-graph: Knowledge Graph for AI Agents
+Persistent DiGraph (JSON-backed) with Traversal, Ego-Graphs, Path Search.
 
 Usage:
-  python3 graph.py --sync               # Aus mem0-lite memories.json laden
-  python3 graph.py --add-node "Gisela" type=project
-  python3 graph.py --add-edge "Alex" "arbeitet_an" "Gisela"
-  python3 graph.py --query "Gisela"     # Direkte Nachbarn
-  python3 graph.py --ego "Alex" --radius 2  # Ego-Graph (N Hops)
-  python3 graph.py --path "Alex" "12. März 2026"
-  python3 graph.py --components         # Zusammenhangskomponenten
-  python3 graph.py --viz                # ASCII-Übersicht
-  python3 graph.py --export graph.gml   # Export für externe Tools
+  python3 graph.py --sync               # Load from mem0-lite memories.json
+  python3 graph.py --add-node "ProjectX" type=project
+  python3 graph.py --add-edge "User" "works_on" "ProjectX"
+  python3 graph.py --query "ProjectX"   # Direct neighbors
+  python3 graph.py --ego "User" --radius 2  # Ego-graph (N hops)
+  python3 graph.py --path "User" "Deadline"
+  python3 graph.py --components         # Connected components
+  python3 graph.py --viz                # ASCII overview
+  python3 graph.py --export graph.gml   # Export for external tools
 """
 
 import json
