@@ -28,11 +28,16 @@ except ImportError:
     sys.exit(1)
 
 # --- Konfiguration ---
-DATA_DIR = Path(os.environ.get("GRAPH_DATA",
-    "/home/openclaw/.openclaw/workspace/skills/networkx-graph/data"))
+# Use environment variables or relative paths for portability
+SCRIPT_DIR = Path(__file__).parent.resolve()
+DEFAULT_DATA_DIR = SCRIPT_DIR.parent / "data"
+
+DATA_DIR = Path(os.environ.get("GRAPH_DATA", str(DEFAULT_DATA_DIR)))
 GRAPH_FILE = DATA_DIR / "graph.json"
-MEM0_FILE = Path(os.environ.get("MEM0_DATA",
-    "/home/openclaw/.openclaw/workspace/skills/mem0-lite/data")) / "memories.json"
+
+DEFAULT_MEM0_DIR = SCRIPT_DIR.parent.parent / "mem0-lite" / "data"
+MEM0_FILE = Path(os.environ.get("MEM0_DATA", str(DEFAULT_MEM0_DIR))) / "memories.json"
+
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 

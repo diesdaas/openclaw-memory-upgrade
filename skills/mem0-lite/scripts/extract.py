@@ -38,8 +38,11 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 JWT_SECRET = os.environ.get("JWT_SECRET", "")
 OPENCLAW_TOKEN = os.environ.get("OPENCLAW_TOKEN", "")
 
-# Paths
-DATA_DIR = Path(os.environ.get("MEM0_DATA", "/home/openclaw/.openclaw/workspace/skills/mem0-lite/data"))
+# Paths - Use environment variables or relative paths for portability
+SCRIPT_DIR = Path(__file__).parent.resolve()
+DEFAULT_DATA_DIR = SCRIPT_DIR.parent / "data"
+
+DATA_DIR = Path(os.environ.get("MEM0_DATA", str(DEFAULT_DATA_DIR)))
 MEMORIES_FILE = DATA_DIR / "memories.json"
 AUDIT_LOG = DATA_DIR / "audit.log"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
