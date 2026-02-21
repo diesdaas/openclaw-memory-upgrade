@@ -51,9 +51,9 @@ Index:   qmd            → Semantic search (500ms)
 ### Query Routing (Automatic)
 
 ```
-"Wie hängt X mit Y?"  → Graph (200ms)
-"Was über X?"         → MEMORY.md (0.5ms)
-"Finde alles über X"  → Hybrid (500ms)
+"How does X relate to Y?" → Graph (200ms)
+"What about X?"           → MEMORY.md (0.5ms)
+"Find all about X"        → Hybrid (500ms)
 ```
 
 ---
@@ -62,9 +62,9 @@ Index:   qmd            → Semantic search (500ms)
 
 - OpenClaw installed
 - Python 3.10+
-- Docker (for Neo4j)
+- Docker (optional, for Neo4j)
 - Groq API key (free tier)
-- ~1GB RAM for Neo4j
+- ~1GB RAM for Neo4j (optional)
 - ~5GB disk
 
 ---
@@ -74,10 +74,10 @@ Index:   qmd            → Semantic search (500ms)
 ### Step 1: Install Dependencies
 
 ```bash
-# Python packages (already included in most OpenClaw setups)
+# Python packages
 pip3 install networkx
 
-# qmd for semantic search
+# qmd for semantic search (optional)
 npm install -g qmd
 
 # Neo4j (optional, for graph DB)
@@ -118,7 +118,7 @@ Add to `~/.openclaw/openclaw.json`:
 
 ```bash
 # Extract facts from discussion
-memory-cli.sh extract "Alex arbeitet an Gisela-Kampagne. Deadline 12. März 2026."
+memory-cli.sh extract "User works on Project X. Deadline is March 15th, 2026."
 
 # Sync to graph
 memory-cli.sh sync
@@ -128,16 +128,16 @@ memory-cli.sh sync
 
 ```bash
 # Quick keyword lookup
-memory-cli.sh quick "Gisela"
+memory-cli.sh quick "project"
 # → MEMORY.md scan (0.5ms)
 
 # Relationship query
-memory-cli.sh graph "Gisela"
-# → Shows: Gisela → has_deadline → 12. März
-#          Gisela → hat_task → TODO: ...
+memory-cli.sh graph "ProjectX"
+# → Shows: ProjectX → has_deadline → March 15th
+#          ProjectX → has_task → TODO items...
 
 # Semantic discovery
-memory-cli.sh search "film project deadline"
+memory-cli.sh search "deadline project"
 # → qmd semantic search (500ms)
 ```
 
@@ -193,7 +193,7 @@ Each agent has isolated memory via `user_id` + `agent_id`:
 
 ```python
 # Agent A cannot see Agent B's memories
-memory.search(query, user_id="alice", agent_id="film-producer")
+memory.search(query, user_id="user1", agent_id="agent-a")
 ```
 
 ### Known Vulnerabilities (documented)
@@ -221,6 +221,5 @@ MIT — Use freely, credit appreciated.
 
 ## Credits
 
-- Research: Ullrich (OpenClaw AI Agent)
 - Framework: OpenClaw
 - Tools: Groq, Neo4j, NetworkX, qmd, Mem0 (inspiration)

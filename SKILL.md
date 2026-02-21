@@ -11,13 +11,13 @@ Single entry point for all memory operations. Scripts are faster and token-savin
 
 ```bash
 # FAST: Keyword lookup (0.5ms)
-memory-cli.sh quick "Gisela"
+memory-cli.sh quick "project"
 
 # SEMANTIC: Discovery search (500ms)
-memory-cli.sh search "deadline film project"
+memory-cli.sh search "deadline project"
 
 # GRAPH: Relationships (200ms)
-memory-cli.sh graph "Alex"
+memory-cli.sh graph "User"
 
 # STATUS
 memory-cli.sh status
@@ -43,32 +43,32 @@ memory-cli.sh status
 ```
 QUERY TYPE              → BEST METHOD
 
-"Was wissen wir über X?" → quick (MEMORY.md)
-"Wie hängt X mit Y?"     → graph (networkx/Neo4j)
-"Finde alles über X"     → search (qmd semantic)
+"What about X?"         → quick (MEMORY.md)
+"How does X relate?"    → graph (networkx/Neo4j)
+"Find all about X"      → search (qmd semantic)
 ```
 
 ## Integration with Other Skills
 
-### film
-```bash
-# After film discussion
-memory-cli.sh extract "Film-Projekt X hat Budget 50k, Deadline März"
-
-# Query relationships
-memory-cli.sh graph "Gisela-Kampagne"
-```
-
-### groq-whisper / yt-transcribe
+### transcription
 ```bash
 # After transcription
 memory-cli.sh extract "$(cat transcript.txt)"
 ```
 
+### film/media
+```bash
+# After discussion
+memory-cli.sh extract "Project X has deadline March 2026"
+
+# Query relationships
+memory-cli.sh graph "ProjectX"
+```
+
 ### github
 ```bash
 # Store repo relationships
-memory-cli.sh add "Film-Projekt" "uses_repo" "github.com/xyz"
+memory-cli.sh add "ProjectX" "uses_repo" "github.com/example/repo"
 ```
 
 ## Security Notes

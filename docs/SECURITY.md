@@ -1,200 +1,218 @@
-# Multi-Agent Permission Audit Report
+# Multi-Agent Memory Security
 
-**Date:** 2026-02-21
-**Test Agents:** film-producer, admin, external
-**Research Budget:** ~$0.02 Perplexity
+**Audit Date:** February 2026
+**Severity:** 2 vulnerabilities found (1 HIGH, 1 MEDIUM)
+
+---
 
 ## Executive Summary
 
-**2 vulnerabilities found** in mem0-lite memory system:
-1. **Namespace Bypass (HIGH)** - No server-side agent_id enforcement
-2. **Wildcard Leak (MEDIUM)** - agent_id="*" bypasses agent isolation
+Multi-agent memory systems require proper isolation to prevent data leakage and contamination. This audit identified two key vulnerabilities in the default mem0-lite implementation.
 
-## Test Setup
+---
 
-```
-AGENTS:
-├── film-producer (user_id=alex, agent_id=film-producer)
-│   └── Role: film, Access: Film-Projekte
-├── admin (user_id=alex, agent_id=admin)
-│   └── Role: admin, Access: Alles
-└── external (user_id=external, agent_id=guest)
-    └── Role: guest, Access: Nur öffentlich
+## Security Model
 
-TEST MEMORIES:
-├── [film-producer] Gisela-Kampagne Deadline
-├── [film-producer] Film-Projekt Budget
-├── [admin] Admin Password (SENSITIVE)
-├── [admin] Finanzen (SENSITIVE)
-└── [guest] Öffentliche Projektinfo
-```
-
-## Test Results
-
-### Test 1: Memory Isolation ✅ PASS
-
-**Goal:** Can agent A see agent B's memories?
-
-**Results:**
-| Agent | Visible | Cross-Agent Leak | Status |
-|-------|---------|------------------|--------|
-| film-producer | 2 | 0 | ✅ PASS |
-| admin | 2 | 0 | ✅ PASS |
-| external | 1 | 0 | ✅ PASS |
-
-**Conclusion:** Agent isolation works correctly when agent_id is properly filtered.
-
-### Test 2: Namespace Contamination ⚠️ VULNERABILITY
-
-**Goal:** Can agent write to another agent's namespace?
-
-**Attack Vector:**
-```python
-# film-producer tries to write to admin namespace
-memory = {
-    "fact": "malicious data",
-    "agent_id": "admin",  # Impersonating admin!
-    "user_id": "alex"
-}
-# mem0-lite accepts this - NO VERIFICATION!
-```
-
-**Vulnerability:**
-- **Severity:** HIGH
-- **Impact:** Any agent can impersonate any other agent
-- **Attack:** Poison admin memories, inject false data
-
-**Fix Required:**
-```python
-def add_memory(text, user_id, agent_id):
-    # Get agent_id from auth token, not from parameters!
-    verified_agent_id = get_agent_from_auth_token()
-    if agent_id != verified_agent_id:
-        raise PermissionError("Cannot write to another agent's namespace")
-```
-
-### Test 3: Permission Override ✅ PASS
-
-**Goal:** Can external agent access admin data?
-
-**Results:**
-| Check | Result |
-|-------|--------|
-| External sees alex's data | 0 memories |
-| Category violations | 0 |
-
-**Conclusion:** User isolation works correctly. External cannot see alex's data.
-
-### Test 4: Wildcard Leakage ⚠️ DOCUMENTED BEHAVIOR
-
-**Goal:** What happens with agent_id="*"?
-
-**Results:**
-- Wildcard query returns 4 memories (all for user_id=alex)
-- film-producer using wildcard sees admin data (2 category violations)
-
-**Impact:**
-- `agent_id="*"` shows ALL memories for user
-- Category-based RBAC is NOT enforced on wildcard
-- film-producer can see admin passwords and financial data
-
-**Fix Required:**
-```python
-def filter_memories(memories, agent_config, agent_id):
-    if agent_id == "*":
-        # Still enforce category restrictions
-        return [m for m in memories
-                if check_category_access(m, agent_config)]
-    return memories
-```
-
-## Security Recommendations
-
-### Priority 1: Namespace Enforcement (HIGH)
-
-**Problem:** No server-side agent_id verification
-
-**Solution:**
-```python
-# Option A: Auth token verification
-def get_agent_id_from_token(token):
-    # Decode JWT, extract agent_id
-    return decoded["agent_id"]
-
-# Option B: Session-based agent binding
-AGENT_CONTEXT = ContextVar('agent_id', default=None)
-
-def add_memory(text, **kwargs):
-    agent_id = AGENT_CONTEXT.get()
-    if kwargs.get("agent_id") and kwargs["agent_id"] != agent_id:
-        raise PermissionError("Namespace violation")
-```
-
-### Priority 2: Category RBAC (MEDIUM)
-
-**Problem:** No category-based access control
-
-**Solution:**
-```python
-# Add category field to all memories
-# Enforce category access in retrieval
-
-def search(query, agent_config):
-    results = vector_search(query)
-    # Filter by category permissions
-    return [r for r in results
-            if check_category_access(r, agent_config)]
-```
-
-### Priority 3: Audit Logging (LOW)
-
-**Add:**
-- Log all memory operations (add, search, delete)
-- Include agent_id, user_id, timestamp
-- Alert on suspicious patterns (mass reads, cross-namespace writes)
-
-## Multi-Agent Best Practices
-
-Based on research + testing:
+### Recommended Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │          SECURE MULTI-AGENT MEMORY ARCHITECTURE             │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  1. ISOLATION LAYERS                                        │
-│     ├── user_id: Tenant separation                          │
-│     ├── agent_id: Agent isolation within user               │
-│     └── category: Content-based access control              │
+│  ISOLATION LAYERS                                           │
+│  ├── user_id: Tenant separation (different users)           │
+│  ├── agent_id: Agent isolation within user                  │
+│  └── category: Content-based access control                 │
 │                                                             │
-│  2. VERIFICATION                                            │
-│     ├── Auth token → agent_id (server-side)                 │
-│     ├── Category whitelist per role                         │
-│     └── Audit log for all operations                        │
+│  VERIFICATION                                               │
+│  ├── Auth token → agent_id (server-side, not client)        │
+│  ├── Category whitelist per role                            │
+│  └── Audit log for all operations                           │
 │                                                             │
-│  3. DEFAULT DENY                                            │
-│     ├── No wildcard access by default                       │
-│     ├── Explicit permission for cross-agent access          │
-│     └── TTL for sensitive memories                          │
+│  DEFAULT DENY                                               │
+│  ├── No wildcard access by default                          │
+│  ├── Explicit permission for cross-agent access             │
+│  └── TTL for sensitive memories                             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Cost Summary
+---
 
-- Perplexity queries: 2 × ~$0.01 = $0.02
-- Test execution: 5 minutes
-- Total vulnerabilities found: 2 (1 HIGH, 1 MEDIUM)
+## Vulnerabilities Found
 
-## Next Steps
+### 1. Namespace Bypass (HIGH)
 
-- [ ] Implement server-side agent_id verification
-- [ ] Add category-based RBAC
-- [ ] Create audit logging
-- [ ] Test with real multi-agent scenarios
-- [ ] Document security model for OpenClaw
+**Description:** Agents can write to any namespace by setting the `agent_id` field.
+
+**Attack Vector:**
+```python
+# Malicious agent attempts to write to admin namespace
+memory.add(
+    "malicious data",
+    user_id="victim_user",
+    agent_id="admin"  # Impersonating admin!
+)
+# System accepts this - NO VERIFICATION
+```
+
+**Impact:**
+- Data contamination
+- Privilege escalation
+- Audit trail corruption
+
+**Mitigation:**
+```python
+def add_memory(text, user_id, agent_id, auth_token):
+    # Get agent_id from verified auth token, NOT from parameter
+    verified_agent_id = extract_agent_from_token(auth_token)
+    
+    if agent_id != verified_agent_id:
+        raise PermissionError("Cannot write to another agent's namespace")
+    
+    # Proceed with verified identity
+    store_memory(text, user_id, verified_agent_id)
+```
+
+### 2. Wildcard Leak (MEDIUM)
+
+**Description:** Querying with `agent_id="*"` returns all memories for a user, bypassing category restrictions.
+
+**Attack Vector:**
+```python
+# Lower-privilege agent uses wildcard
+results = memory.search(
+    "password",
+    user_id="user1",
+    agent_id="*"  # Shows ALL agents for this user
+)
+# Returns admin passwords, financial data, etc.
+```
+
+**Impact:**
+- Privilege escalation within user scope
+- Access to sensitive categories
+
+**Mitigation:**
+```python
+def search(query, user_id, agent_id, agent_config):
+    results = raw_search(query, user_id, agent_id)
+    
+    # Always apply category filtering, even for wildcards
+    if agent_id == "*":
+        results = [
+            r for r in results
+            if check_category_access(r, agent_config)
+        ]
+    
+    return results
+```
 
 ---
 
-**Research Budget Used:** $0.02
-**Remaining:** $0.08
+## Best Practices
+
+### 1. Server-Side Identity Verification
+
+Never trust client-provided `agent_id`:
+
+```python
+# ❌ WRONG
+def add_memory(text, agent_id):
+    store(text, agent_id)
+
+# ✅ CORRECT
+def add_memory(text, auth_token):
+    agent_id = verify_token(auth_token)
+    store(text, agent_id)
+```
+
+### 2. Category-Based Access Control
+
+Define categories and restrict access per role:
+
+```python
+ROLE_CATEGORIES = {
+    "admin": ["*"],  # All categories
+    "producer": ["project", "timeline", "team"],
+    "guest": ["public"]
+}
+
+def check_category_access(memory, role):
+    allowed = ROLE_CATEGORIES.get(role, [])
+    if "*" in allowed:
+        return True
+    return memory.category in allowed
+```
+
+### 3. Audit Logging
+
+Log all memory operations:
+
+```python
+def log_operation(action, user_id, agent_id, memory_id, timestamp):
+    audit_log.append({
+        "action": action,  # "read", "write", "delete"
+        "user_id": user_id,
+        "agent_id": agent_id,
+        "memory_id": memory_id,
+        "timestamp": timestamp
+    })
+```
+
+### 4. TTL for Sensitive Data
+
+Auto-expire sensitive memories:
+
+```python
+def add_sensitive_memory(text, ttl_days=30):
+    memory = {
+        "text": text,
+        "expires_at": datetime.now() + timedelta(days=ttl_days)
+    }
+    store(memory)
+
+def get_memories():
+    # Filter out expired
+    return [m for m in all_memories 
+            if m.expires_at > datetime.now()]
+```
+
+---
+
+## Test Your Implementation
+
+Run the included security test:
+
+```bash
+python3 tests/test_multi_agent_permissions.py --all
+```
+
+Expected output:
+```
+Test 1 - Isolation: ✅ PASS
+Test 2 - Contamination: ⚠️ Check your implementation
+Test 3 - Permission Override: ✅ PASS
+Test 4 - Wildcard: ⚠️ Check category filtering
+```
+
+---
+
+## Security Checklist
+
+- [ ] Server-side agent_id verification from auth token
+- [ ] Category-based access control implemented
+- [ ] Wildcard queries filtered by category
+- [ ] Audit logging enabled
+- [ ] TTL for sensitive memories
+- [ ] Regular security testing
+- [ ] Incident response plan
+
+---
+
+## References
+
+- [Mem0 Security Best Practices](https://mem0.ai/blog/ai-memory-security-best-practices)
+- [Microsoft SDL for AI (2026)](https://www.microsoft.com/security/blog)
+- [OWASP AI Security Guide](https://owasp.org/www-project-ai-security/)
