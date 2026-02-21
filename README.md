@@ -196,12 +196,21 @@ Each agent has isolated memory via `user_id` + `agent_id`:
 memory.search(query, user_id="user1", agent_id="agent-a")
 ```
 
-### Known Vulnerabilities (documented)
+### Vulnerabilities — FIXED ✅
 
-1. **Namespace Bypass** — Requires server-side agent_id verification
-2. **Wildcard Leak** — Requires category-based RBAC
+Both vulnerabilities from the security audit have been fixed:
 
-See `docs/SECURITY.md` for mitigations.
+1. **Namespace Bypass** → ✅ **FIXED**
+   - Server-side agent_id verification via `verify_access()`
+   - JWT token or environment variable required
+   - Raises `SecurityError` on mismatch
+
+2. **Wildcard Leak** → ✅ **FIXED**
+   - Category-based RBAC always applied
+   - `filter_by_category()` runs on all queries
+   - Even wildcard queries filtered by role permissions
+
+See `docs/SECURITY.md` for implementation details.
 
 ---
 
