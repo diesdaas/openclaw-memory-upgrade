@@ -73,7 +73,7 @@ python3 tests/test_multi_agent_permissions.py --all
 
 ## Cost Tracking
 
-- Perplexity Research: ~$0.09 total today
+- Perplexity Research: ~$0.09 total
 - Free tier tools: $0/month
 
 ## Files

@@ -1,35 +1,35 @@
 ---
 name: model-ranking
-description: "Personal model ranking for optimal model selection. Tracks performance, rate-limits, and Alex's preferences. Use when: switching models, planning sessions, avoiding dead-ends from rate-limits."
+description: "Personal model ranking for optimal model selection. Tracks performance, rate-limits, and user preferences. Use when: switching models, planning sessions, avoiding dead-ends from rate-limits."
 ---
 
 # Model Ranking — Personal Learning
 
-**Ziel:** Richtiges Modell für richtige Aufgabe. Rate-Limit Dead-Ends vermeiden.
+**Goal:** Right model for right task. Avoid rate-limit dead-ends.
 
-## Alex's Preferences (gelernt)
+## User Preferences (learned)
 
-**Mag ich:**
-- Opus 4.6 → 10/10 (beste Qualität)
-- Kimi 2.5 → 9/10 (1M Context, zuverlässig)
-- Sonnet 4.6 → 9/10 (ausgewogen)
-- GLM 4 Free → 8/10 (langsam aber gut)
+**Preferred models:**
+- Opus 4.6 → 10/10 (best quality)
+- Kimi 2.5 → 9/10 (1M Context, reliable)
+- Sonnet 4.6 → 9/10 (balanced)
+- GLM 4 Free → 8/10 (slow but good)
 
-**Budget:** Flexibel (€0-20+/Monat)
-**Priorität:** Balance (wechseln je nach Task)
+**Budget:** Flexible (€0-20+/month)
+**Priority:** Balance (switch based on task)
 
 ## Ranking
 
 ### 🏆 HIGH CLASS
 
-| Model | Alex-Rating | Wann nutzen |
+| Model | User Rating | When to use |
 |-------|-------------|-------------|
 | **Opus 4.6** | 10/10 | Complex decisions, Architecture, Security |
 | **Sonnet 4.6** | 9/10 | Daily driver, Coding, Docs |
 
 ### 🛠️ WORKING HORSES
 
-| Model | Alex-Rating | Wann nutzen |
+| Model | User Rating | When to use |
 |-------|-------------|-------------|
 | **Kimi 2.5** | 9/10 | Long sessions (1M context) |
 | **Trinity Large** | ?/10 | Testing, Free backup |
@@ -37,41 +37,41 @@ description: "Personal model ranking for optimal model selection. Tracks perform
 
 ### 🆓 FREE TIER (Backup)
 
-| Model | Alex-Rating | Warnung |
+| Model | User Rating | Warning |
 |-------|-------------|---------|
-| **Gemini 3 Pro** | ?/10 | Häufig Rate-limits |
-| **Qwen3 80B** | ?/10 | Rate-limits häufig |
+| **Gemini 3 Pro** | ?/10 | Frequent rate-limits |
+| **Qwen3 80B** | ?/10 | Frequent rate-limits |
 
-## Auto-Switch Logik
-
-```
-1. HIGH CLASS versuchen
-2. Falls Rate-Limit → WORKING HORSES
-3. Falls Rate-Limit → FREE TIER
-4. Warnung ausgeben bei Abstufung
-```
-
-## Warn-Level
+## Auto-Switch Logic
 
 ```
-🟢 HIGH CLASS → "Alles gut"
-🟡 WORKING HORSE → "Qualität okay"
-🔴 FREE TIER → "Könnte limitieren"
+1. Try HIGH CLASS
+2. If Rate-Limit → WORKING HORSES
+3. If Rate-Limit → FREE TIER
+4. Issue warning on downgrade
+```
+
+## Warning Levels
+
+```
+🟢 HIGH CLASS → "All good"
+🟡 WORKING HORSE → "Quality okay"
+🔴 FREE TIER → "May hit limits"
 ```
 
 ## Logging
 
-Performance wird in `model_performance.json` getrackt:
-- Welche Modelle genutzt
-- Erfolg/Misserfolg
-- Rate-Limit-Events
+Performance is tracked in `model_performance.json`:
+- Which models were used
+- Success/failure
+- Rate-limit events
 
-## Nächste Fragen
+## Next Questions
 
-In ~5 Sessions fragen:
-- Häufigste Task-Typen?
-- Modelle die NICHT funktionieren?
+Ask in ~5 sessions:
+- Most frequent task types?
+- Models that DON'T work?
 
-## Lernen
+## Learning
 
-> "Sammle Daten iterativ. Frage ab und zu. Ranking entsteht durch Erfahrung."
+> "Collect data iteratively. Ask occasionally. Ranking emerges through experience."

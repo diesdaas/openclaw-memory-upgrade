@@ -90,8 +90,8 @@ export OPENCLAW_TOKEN="eyJhbGc..."
 
 | Test | Result |
 |------|--------|
-| List memories | ✅ 9 memories shown |
-| Search "Gisela" | ✅ 3 results |
+| List memories | ✅ Working |
+| Search query | ✅ Working |
 | Category filter | ✅ Working |
 | Auth check | ✅ Rejects unauthenticated |
 | Dev mode | ✅ Works with MEM0_DEV_MODE |
